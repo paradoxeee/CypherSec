@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CYPHER-SEC Banner](https://via.placeholder.com/800x200/000000/00FF00?text=CYPHER-SEC)
+![CYPHER-SEC Banner](/screenshots/banner.png)
 
 *A cyberpunk-themed authentication system with Matrix rain effect and hacker aesthetics*
 
@@ -33,11 +33,11 @@
 ## 📸 Screenshots
 
 ### Login Interface
-![Login Interface](screenshot1.png)
+![Login Interface](/screenshots/login.png)
 *Matrix-themed login page with secure access terminal*
 
 ### Dashboard
-![Dashboard](screenshot2.png)
+![Dashboard](/screenshots/dashboard.png)
 *Cybersecurity dashboard with system monitoring tools*
 
 ## 🏗️ Architecture
@@ -70,7 +70,7 @@ CypherSec/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/cypher-sec.git
+git clone https://github.com/paradoxeee/cypher-sec.git
 cd cypher-sec
 ```
 
@@ -153,7 +153,7 @@ python main.py
 
 ## 🎥 Demo
 
-[🎬 Watch the full demonstration video](video-link-here)
+[🎬 Watch the full demonstration video](https://www.youtube.com/watch?v=_aRQ83i6X3c)
 
 *See CYPHER-SEC in action with complete registration and login flow*
 
