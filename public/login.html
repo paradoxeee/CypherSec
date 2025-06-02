@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYPHER-SEC Dashboard - Neural Interface</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fira Code', monospace;
+            background: #000;
+            color: #00ff41;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Matrix background */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #001100 0%, #000000 70%);
+            z-index: -3;
+        }
+
+        .matrix-rain {
+            position: absolute;
+            top: -100px;
+            color: #00ff41;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 12px;
+            white-space: nowrap;
+            animation: rain linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes rain {
+            to {
+                top: 100vh;
+            }
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 65, 0.03) 2px,
+                    rgba(0, 255, 65, 0.03) 4px);
+            z-index: 1000;
+            pointer-events: none;
+            animation: scanline 0.1s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(4px);
+            }
+        }
+
+        /* Header/Navigation */
+        .header {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 2px solid #00ff41;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-shadow: 0 0 10px #00ff41;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            from {
+                text-shadow: 0 0 10px #00ff41;
+            }
+
+            to {
+                text-shadow: 0 0 20px #00ff41, 0 0 30px #00ff41;
+            }
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-item {
+            color: #00ff41;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .nav-item:hover {
+            border-color: #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .nav-item.active {
+            background: rgba(0, 255, 65, 0.1);
+            border-color: #00ff41;
+        }
+
+        /* System Status Bar */
+        .status-bar {
+            background: rgba(0, 20, 0, 0.8);
+            border-bottom: 1px solid #003300;
+            padding: 0.5rem 2rem;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: statusBlink 3s infinite;
+        }
+
+        @keyframes statusBlink {
+
+            0%,
+            90% {
+                opacity: 0.8;
+            }
+
+            95% {
+                opacity: 1;
+            }
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff41;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 2rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Terminal Windows */
+        .terminal-window {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            box-shadow:
+                0 0 30px rgba(0, 255, 65, 0.2),
+                inset 0 0 30px rgba(0, 255, 65, 0.05);
+            overflow: hidden;
+            animation: terminalGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes terminalGlow {
+            from {
+                box-shadow: 0 0 20px rgba(0, 255, 65, 0.2), inset 0 0 20px rgba(0, 255, 65, 0.05);
+            }
+
+            to {
+                box-shadow: 0 0 40px rgba(0, 255, 65, 0.3), inset 0 0 40px rgba(0, 255, 65, 0.1);
+            }
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #001a00, #003300);
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #00ff41;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .control {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid #00ff41;
+            background: rgba(0, 255, 65, 0.3);
+        }
+
+        .terminal-content {
+            padding: 1.5rem;
+            height: 250px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        /* System Monitor */
+        .system-monitor {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #003300;
+        }
+
+        .metric-value {
+            color: #00ff41;
+            font-weight: 600;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #003300;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff41, #33ff66);
+            border-radius: 4px;
+            animation: progressPulse 2s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        @keyframes progressPulse {
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Network Activity */
+        .network-activity {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        .activity-log {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0;
+            border-left: 2px solid #00ff41;
+            padding-left: 0.5rem;
+            animation: logAppear 0.5s ease-out;
+        }
+
+        @keyframes logAppear {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-time {
+            color: #666;
+            font-size: 0.7rem;
+        }
+
+        .log-success {
+            border-left-color: #00ff41;
+        }
+
+        .log-warning {
+            border-left-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .log-error {
+            border-left-color: #ff0040;
+            color: #ff0040;
+        }
+
+        /* Security Status */
+        .security-status {
+            grid-column: 3 / 4;
+            grid-row: 1 / 2;
+        }
+
+        .security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid #003300;
+            border-radius: 4px;
+        }
+
+        .security-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-secure {
+            background: rgba(0, 255, 65, 0.2);
+            color: #00ff41;
+            border: 1px solid #00ff41;
+        }
+
+        .badge-warning {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+            border: 1px solid #ffaa00;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+        }
+
+        .code-content {
+            height: 300px;
+            background: #001100;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+
+        .code-line {
+            display: flex;
+            margin-bottom: 0.3rem;
+        }
+
+        .line-number {
+            color: #666;
+            margin-right: 1rem;
+            width: 3rem;
+            text-align: right;
+        }
+
+        .code-text {
+            color: #00ff41;
+        }
+
+        .code-keyword {
+            color: #ff6b9d;
+        }
+
+        .code-string {
+            color: #c7f59b;
+        }
+
+        .code-comment {
+            color: #666;
+            font-style: italic;
+        }
+
+        .code-function {
+            color: #8be9fd;
+        }
+
+        /* Tools Panel */
+        .tools-panel {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+        }
+
+        .tool-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #003300;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tool-item:hover {
+            border-color: #00ff41;
+            background: rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+        }
+
+        .tool-name {
+            font-weight: 500;
+        }
+
+        .tool-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            background: rgba(0, 255, 65, 0.2);
+            border: 1px solid #00ff41;
+        }
+
+        /* Command Line */
+        .command-line {
+            grid-column: 1 / 4;
+            grid-row: 3 / 4;
+        }
+
+        .cmd-content {
+            height: 200px;
+            background: #000;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .cmd-line {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .cmd-prompt {
+            color: #00ff41;
+            margin-right: 0.5rem;
+        }
+
+        .cmd-input {
+            background: transparent;
+            border: none;
+            color: #00ff41;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            flex: 1;
+        }
+
+        .cmd-cursor {
+            background: #00ff41;
+            width: 8px;
+            height: 1rem;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Glitch effects */
+        .glitch {
+            animation: glitch 0.3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glitch {
+            0% {
+                text-shadow: 0.05em 0 0 #ff0040, -0.05em -0.025em 0 #00ffff, 0.025em 0.05em 0 #ffff00;
+            }
+
+            15% {
+                text-shadow: 0.05em 0 0 #ff0040, -0.05em -0.025em 0 #00ffff, 0.025em 0.05em 0 #ffff00;
+            }
+
+            16% {
+                text-shadow: -0.05em -0.025em 0 #ff0040, 0.025em 0.025em 0 #00ffff, -0.05em -0.05em 0 #ffff00;
+            }
+
+            49% {
+                text-shadow: -0.05em -0.025em 0 #ff0040, 0.025em 0.025em 0 #00ffff, -0.05em -0.05em 0 #ffff00;
+            }
+
+            50% {
+                text-shadow: 0.025em 0.05em 0 #ff0040, 0.05em 0 0 #00ffff, 0 -0.05em 0 #ffff00;
+            }
+
+            99% {
+                text-shadow: 0.025em 0.05em 0 #ff0040, 0.05em 0 0 #00ffff, 0 -0.05em 0 #ffff00;
+            }
+
+            100% {
+                text-shadow: -0.025em 0 0 #ff0040, -0.025em -0.025em 0 #00ffff, -0.025em -0.05em 0 #ffff00;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .code-editor {
+                grid-column: 1 / 3;
+            }
+
+            .command-line {
+                grid-column: 1 / 3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .code-editor,
+            .command-line {
+                grid-column: 1 / 2;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #001100;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="matrix-bg"></div>
+    <div class="scanlines"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">CYPHER-SEC v2.1.337</div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">Dashboard</a>
+
+            </nav>
+        </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left">
+            <div class="status-item">
+                <div class="status-indicator"></div>
+                <span>SECURE CONNECTION ACTIVE</span>
+            </div>
+        </div>
+        <div class="status-right">
+            <div class="status-item">
+                <span>THREAT LEVEL: LOW</span>
+            </div>
+            <div class="status-item">
+                <span>UPTIME: 72:15:33</span>
+            </div>
+            <div class="status-item">
+                <span>AGENT-007</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <!-- System Monitor -->
+        <div class="terminal-window system-monitor">
+            <div class="terminal-header">
+                <span class="terminal-title">SYSTEM MONITOR</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            <div class="terminal-content">
+                <div class="metric">
+                    <span>CPU Usage</span>
+                    <span class="metric-value">23%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 23%"></div>
+                </div>
+
+                <div class="metric">
+                    <span>Memory</span>
+                    <span class="metric-value">67%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 67%"></div>
+                </div>
+
+                <div class="metric">
+                    <span>Network I/O</span>
+                    <span class="metric-value">45%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%"></div>
+                </div>
+
+                <div class="metric">
+                    <span>Encryption Load</span>
+                    <span class="metric-value">89%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 89%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Activity -->
+        <div class="terminal-window network-activity">
+            <div class="terminal-header">
+                <span class="terminal-title">NETWORK ACTIVITY</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            <div class="terminal-content">
+                <div class="activity-log" id="activityLog">
+                    <div class="log-entry log-success">
+                        <div class="log-time">14:23:45</div>
+                        <div>Secure handshake established with 192.168.1.1</div>
+                    </div>
+                    <div class="log-entry log-success">
+                        <div class="log-time">14:23:42</div>
+                        <div>Firewall rule updated: ALLOW port 443</div>
+                    </div>
+                    <div class="log-entry log-warning">
+                        <div class="log-time">14:23:38</div>
+                        <div>Suspicious packet detected from 10.0.0.15</div>
+                    </div>
+                    <div class="log-entry log-success">
+                        <div class="log-time">14:23:35</div>
+                        <div>VPN tunnel established successfully</div>
+                    </div>
+                    <div class="log-entry log-error">
+                        <div class="log-time">14:23:31</div>
+                        <div>Failed login attempt blocked</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Status -->
+        <div class="terminal-window security-status">
+            <div class="terminal-header">
+                <span class="terminal-title">SECURITY STATUS</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            <div class="terminal-content">
+                <div class="security-item">
+                    <span>Firewall</span>
+                    <span class="security-badge badge-secure">ACTIVE</span>
+                </div>
+                <div class="security-item">
+                    <span>IDS/IPS</span>
+                    <span class="security-badge badge-secure">RUNNING</span>
+                </div>
+                <div class="security-item">
+                    <span>VPN</span>
+                    <span class="security-badge badge-secure">CONNECTED</span>
+                </div>
+                <div class="security-item">
+                    <span>Encryption</span>
+                    <span class="security-badge badge-secure">AES-256</span>
+                </div>
+                <div class="security-item">
+                    <span>Tor Proxy</span>
+                    <span class="security-badge badge-warning">STANDBY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Editor -->
+        <div class="terminal-window code-editor">
+            <div class="terminal-header">
+                <span class="terminal-title">exploit_scanner.py - ACTIVE SESSION</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            <div class="code-content">
+                <div class="code-line">
+                    <span class="line-number">001</span>
+                    <span class="code-text"><span class="code-comment"># Advanced Vulnerability Scanner</span></span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">002</span>
+                    <span class="code-text"><span class="code-keyword">import</span> socket, threading, nmap</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">003</span>
+                    <span class="code-text"><span class="code-keyword">from</span> scapy.all <span
+                            class="code-keyword">import</span> *</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">004</span>
+                    <span class="code-text"></span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">005</span>
+                    <span class="code-text"><span class="code-keyword">class</span> <span
+                            class="code-function">ExploitScanner</span>:</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">006</span>
+                    <span class="code-text"> <span class="code-keyword">def</span> <span
+                            class="code-function">__init__</span>(self, target):</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">007</span>
+                    <span class="code-text"> self.target = target</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">008</span>
+                    <span class="code-text"> self.vulnerabilities = []</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">009</span>
+                    <span class="code-text"></span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">010</span>
+                    <span class="code-text"> <span class="code-keyword">def</span> <span
+                            class="code-function">scan_ports</span>(self):</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">011</span>
+                    <span class="code-text"> <span class="code-string">"Port scanning with stealth mode"</span></span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">012</span>
+                    <span class="code-text"> nm = nmap.PortScanner()</span>
+                </div>
+                <div class="code-line">
+                    <span class="line-number">013</span>
+                    <span class="code-text"> results = nm.scan(self.target, <span
+                            class="code-string">'1-65535'</span>)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Panel -->
+        <div class="terminal-window tools-panel">
+            <div class="terminal-header">
+                <span class="terminal-title">SECURITY TOOLS</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            <div class="terminal-content">
+                <div class="tool-item" onclick="launchTool('nmap')">
+                    <span class="tool-name">Nmap Scanner</span>
+                    <span class="tool-status">READY</span>
+                </div>
+                <div class="tool-item" onclick="launchTool('wireshark')">
+                    <span class="tool-name">Wireshark</span>
+                    <span class="tool-status">ACTIVE</span>
+                </div>
+                <div class="tool-item" onclick="launchTool('metasploit')">
+                    <span class="tool-name">Metasploit</span>
+                    <span class="tool-status">READY</span>
+                </div>
+                <div class="tool-item" onclick="launchTool('burpsuite')">
+                    <span class="tool-name">Burp Suite</span>
+                    <span class="tool-status">STANDBY</span>
+                </div>
+                <div class="tool-item" onclick="launchTool('hashcat')">
+                    <span class="tool-name">Hashcat</span>
+                    <span class="tool-status">READY</span>
+                </div>
+                <div class="tool-item" onclick="launchTool('sqlmap')">
+                    <span class="tool-name">SQLMap</span>
+                    <span class="tool-status">READY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Line -->
+        <div class="terminal-window command-line">
+            <div class="terminal-header">
+                <span class="terminal-title">COMMAND INTERFACE</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            <div class="cmd-content" id="cmdContent">
+                <div class="cmd-line">
+                    <span class="cmd-prompt">root@cypher-sec:~$</span>
+                    <span>nmap -sS -O target.com</span>
+                </div>
+                <div class="cmd-line">
+                    <span style="color: #666;">Starting Nmap scan...</span>
+                </div>
+                <div class="cmd-line">
+                    <span class="cmd-prompt">root@cypher-sec:~$</span>
+                    <span>sqlmap -u "http://target.com/login" --dbs</span>
+                </div>
+                <div class="cmd-line">
+                    <span style="color: #666;">Database enumeration complete.</span>
+                </div>
+                <div class="cmd-line">
+                    <span class="cmd-prompt">root@cypher-sec:~$</span>
+                    <script>
+                        console.log(
+                            "%c👋 Hey ! Ce site a été créé par Gianni Gualtieri\n📂 Portfolio : https://giannigualtieri.fr\n🐙 GitHub    : https://github.com/paradoxeee",
+                            "color: lime; font-size: 16px; font-weight: bold;"
+                        );
+
+
+                    </script>

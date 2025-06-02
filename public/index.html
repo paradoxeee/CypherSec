@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYPHER ACCESS - Secured Terminal</title>
+    <link rel="stylesheet" href="/public/assets/style/style.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    <div class="binary-rain" id="binaryRain"></div>
+    <div class="circuit-lines"></div>
+    <div class="scanlines"></div>
+
+    <div class="terminal-container">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <span class="terminal-title">c v2.1.337 - SECURE ACCESS TERMINAL</span>
+                <div class="terminal-controls">
+                    <div class="control"></div>
+                    <div class="control"></div>
+                    <div class="control"></div>
+                </div>
+            </div>
+            
+            <div class="terminal-content">
+                <div class="boot-sequence" id="bootSequence">
+                    <div class="boot-line">Initializing secure connection...</div>
+                    <div class="boot-line">Loading encryption protocols...</div>
+                    <div class="boot-line">Establishing quantum tunneling...</div>
+                    <div class="boot-line">System ready for authentication.</div>
+                </div>
+
+                <div class="logo-ascii">
+ ██████╗██╗   ██╗██████╗ ██╗  ██╗███████╗██████╗ 
+██╔════╝╚██╗ ██╔╝██╔══██╗██║  ██║██╔════╝██╔══██╗
+██║      ╚████╔╝ ██████╔╝███████║█████╗  ██████╔╝
+██║       ╚██╔╝  ██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗
+╚██████╗   ██║   ██║     ██║  ██║███████╗██║  ██║
+ ╚═════╝   ╚═╝   ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                    [CLASSIFIED ACCESS]
+                </div>
+
+                <form class="access-form" id="accessForm">
+                    <div class="form-group">
+                        <label class="form-label">User ID</label>
+                        <input id="login-username" type="text" class="form-input" placeholder="Enter your credentials..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Access Key</label>
+                        <input id="login-password" type="password" class="form-input" placeholder="••••••••••••••••" required>
+                    </div>
+
+                    <button type="submit" class="access-btn">
+                        Initialize Access
+                    </button>
+                </form>
+                <p id="message"></p>
+                <div class="status-area" id="statusArea">
+                    <div class="status-line">> Awaiting authentication credentials...</div>
+                    <div class="status-line cursor">> System status: READY</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/public/assets/style/style.js"></script>
+    <script src="/public/assets/script.js"></script>
+</body>
+</html>
